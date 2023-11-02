@@ -1,0 +1,24 @@
+NHS Scotland accidentally leaks list of transgender patients
+
+NHS Greater Glasgow and Clyde has reportedly leaked data pertaining to 86 transgender patients.
+
+The error occurred on Monday, when the Sandyford clinic – which provides gender and sexual health services in the Glasgow area – sent an open email chain to transgender patients, advertising a new service.
+
+As the email chain was not sent via BCC – which is standard practice – the full list of email addresses of people receiving gender treatment at the clinic was visible to all participants.
+
+James Morton of Scottish Transgender Alliance told Kaleidoscot: “We are greatly concerned that this data breach has occurred.
+
+“Such violations of data confidentiality are much feared by transgender people due to the speed at which privacy, trust and safety can be painfully stripped from them at the click of a button.
+
+“We accept this incident was an accident and not malicious but that is of little comfort to those affected. We urge the 86 people who received each other’s email addresses to permanently delete this unlawfully transmitted data and to not compound the harm by forwarding the data on to anyone else.
+
+“The sharing of sensitive personal information without consent is unlawful whether or not it was accidental. The Data Protection Act 1998 and Human Rights Act 1998 together create strict obligations of confidentiality.
+
+“The fact that the data potentially identifies the gender reassignment history of individuals in possession of gender recognition certificates further increases the seriousness of the breach since violating the privacy protections of the Gender Recognition Act 2004 can result in criminal charges against individuals.
+
+“We believe this breach most likely occurred because NHS Gender Identity Clinics [GICs] are so under-resourced. Chronic under-staffing means that the GICs have long been struggling not just with treatment delivery but also with basic administration.
+
+“The best way NHS managers can make amends for this privacy violation is to resolve the resource capacity crisis facing the GICs.”
+
+ 
+

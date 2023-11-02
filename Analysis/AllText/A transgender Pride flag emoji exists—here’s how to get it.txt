@@ -1,0 +1,47 @@
+A transgender Pride flag emoji exists—here’s how to get it
+
+The transgender Pride flag emoji has been created.
+
+People can now send a transgender Pride flag emoji to their friends and family—though there are a few catches.
+
+You can only use the emoji if you are in possession of the special string of code combining existing emojis into the flag. This code then needs to be entered into WhatsApp—and WhatsApp only—and can only be used on Android phones.
+
+The flag hasn’t been officially approved by emoji creators the Unicode Consortium, but can be summoned by any Android user with the newest version of WhatsApp. That’s version 2.19.62, if you were wondering.
+
+The phenomenon was first reported by Emojipedia, a voting member of the Unicode Consortium.
+
+The news came out after the latest WhatsApp update was made available to Android phones on Tuesday (March 5).
+
+Much like the anti-LGBT flag emoji spotted by people earlier this month, the trans flag emoji combines two emojis: the white flag and transgender symbol.
+
+Between these two emojis, there is a piece of code known as an invisible Zero Width Joiner character. This enables the two other symbols to fuse and create something brand new—in this case, a transgender Pride flag emoji.
+
+You can copy the code needed to form a transgender Pride emoji here, though it will only work if your phone fulfils all the conditions mentioned above. Unfortunately, this is not yet available for Apple users on iPhone.
+
+Despite years of campaigning, the transgender Pride flag emoji wasn’t included in the Unicode Consortium’s sixth major emoji update since 2014, which will come to phones by October this year.
+
+The bisexual, lesbian, pansexual and asexual flags were also not present.
+
+
+
+The official set of new emojis included a sloth, skunk, mechanical arm, ice cube, yo-yo and banjo, as well as a drop of blood—but still no LGBT+ flag emojis apart from the Pride flag.
+
+However, interracial same-sex couple emojis were made a reality after a Tinder campaign attracted more than 50,000 people to sign the dating app’s petition.
+
+Tinder’s chief marketing officer Jenny Campbell responded to the news by saying: “Tinder advocates for the freedom of people to live how they want to live and love who they want to love.
+
+— Tinder’s chief marketing officer Jenny Campbell
+
+
+“The success of our Interracial Couple Emoji campaign shows how powerful the voices are of the more than 50,000 people who joined our cause by signing our petition.”
+
+And the Unicode Consortium revealed last month that gender-inclusive emojis for couples in which both partners don’t define as male or female will come to phones this year.
+
+The emojis for non-binary partners will be available in 16 different combinations of skin tone.
+
+They are listed as “people holding hands,” and will be seen in the family category with the rest of the 230 new emojis, which were revealed on February 5.
+
+The move comes after gender neutral emojis were unveiled in 2017.
+
+The latest rollout of emojis also includes various images representing disabled people, such as blind people using white canes, people in wheelchairs and guide dogs.
+

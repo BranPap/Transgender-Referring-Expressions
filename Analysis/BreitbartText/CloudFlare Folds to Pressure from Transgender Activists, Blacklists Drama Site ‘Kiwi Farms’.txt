@@ -1,0 +1,57 @@
+CloudFlare Folds to Pressure from Transgender Activists, Blacklists Drama Site ‘Kiwi Farms’
+
+Internet powerhouse Cloudflare recently blocked Kiwi Farms, a popular internet drama forum, just days after saying it would continue to provide service to the website despite weeks of pressure from transgender activists.
+
+Bloomberg reports that Cloudflare, the content delivery network and DDoS mitigation company considered part of the internet’s backbone, recently suspended its service for Kiwi Farms, a web forum dedicated to tracking and discussing the online exploits of internet characters and celebrities.
+
+The pressure to revoke services to the website began after one popular Twitch streamer and trans-rights activist, Clara “Keffals” Sorrenti — born Lucas Roberts — blamed Kiwi Farms for “doxxing” and posting personal information about them. Sorrenti is a Canadian transgender Twitch streamer who gained attention online after claiming credit for getting the leftist streamer Destiny banned from Twitch for comments about transgender athletes.
+
+Sorrenti was previously involved in Canadian politics, running in the 2018 Ontario general election and the 2019 Canadian federal election as part of the Communist Party of Canada. Kiwi Farms tracked Sorrenti’s online activities and public information, including his association with a Twitter user named Chloe (@BobPosting) who alleged to have provided minors with unlicensed hormone replacement therapy. In one screenshot of a Discord chat, @BobPosting states “I have unironically pinkpilled like half a dozen minors. And by pinkpill I mean uh point them to HRT resources after they reach out.” @BobPosting also runs the DIY HRT guide — which Sorrenti sponsors — instructing people on how to perform hormone replacement therapy to transition.
+
+Sorrenti was also accused of running a Discord server called “Catboy Ranch” that allegedly existed to groom minors. Members of the server were allegedly called Catboys while Sorrenti was referred to as the “Rancher.” Sorrenti allegedly sent collars to favored members of the server declaring them his property. Many of the allegations against Sorrenti and the Discord server have been archived.
+
+Sorrenti alleged that he was swatted at his home in Canada after someone impersonated him and sent fraudulent emails to politicians threatening to harm “every cisgender person” at city hall. Following the incident, Sorrenti stated that he had left Canada to stay with friends in Northern Ireland.
+
+Amidst this drama, Rep. Marjorie Taylor Greene (R-GA), also called for Kiwi Farms to be taken down, alleging that she was also the victim of a swatting attack by a member of the site. Sorrenti, who is extremely politically opposed to Greene, even seemed shocked by the turn of events, posting a tweet about the situation:
+
+IVE BEEN BUSY ALL DAY WHAT THE HELL IS GOING ON https://t.co/RprM5lpBGH
+
+— Keffals (@keffals) August 24, 2022
+
+Police stated that they had received a voicemail with an automated recording claiming responsibility for the swatting of Greene, stating that it was over Greene’s stance on transgender rights and her introduction of a bill called The Protect Children’s Innocence Act which would prevent transgender medical procedures for minors. Kiwi Farms has generally held anti-transgender sentiment, making any involvement in the swatting incident seemingly stand at odds with its past stance on the issue.
+
+Shortly after Sorrenti’s swatting, his followers began putting pressure on Cloudflare to remove service to Kiwi Farms and leave the site open to DDOS attacks, effectively taking the site offline.
+
+Cloudflare initially made a blog post stating that it regretted taking action to take the far-right websites 8Chan and the Daily Stormer offline in 2019 and 2017 as soon afterward they received “deeply troubling” responses from authoritarian regimes calling for the company to block human rights websites.
+
+However, in a later blog post, Cloudflare CEO Matthew Prince claimed that the company had made a sudden reversal of its decision and revoked its services to Kiwi Farms. Prince claimed this was due to an escalation in rhetoric and “specific, targeted threats” towards individuals on the site.
+
+“This is an extraordinary decision for us to make and, given Cloudflare’s role as an internet infrastructure provider, a dangerous one that we are not comfortable with,” Prince said. While we believe “it would have been appropriate as an infrastructure provider for us to wait for legal process, in this case the imminent and emergency threat to human life which continues to escalate causes us to take this action.”
+
+Joshua “Null” Moon, the founder of Kiwi Farms, has disputed Prince’s claims in a post to his own site. While Kiwi Farmss.net has been taken down, the website briefly operated on KiwiFarmss.ru, KiwiFarms.Top, and has remained largely online on the Tor network — which is regularly referred to as the dark or deep web.
+
+“Matthew Prince lied,” a forum topic posted by Moon stated. “Cloudflare CEO Matthew Prince stated an imminent threat to human life was why he revoked our service. He elaborates in his post, and claims violent rhetoric had ramped up.”
+
+“This seems to be based off one of two things: 1. A post made on 4chan’s /pol/ with a picture taken outside an apartment in Ireland which references the forum.” Moon posted the below screenshot taken from 4Chan, not KiwiFarms.”
+
+Moon continued: “2. A series of posts made by one user, @Washizu Iwao (formerly @Serotonin). This means that a community with 16,000 daily sign-ins is being punished for the behavior of a single user, or a person not even on our website.”
+
+Moon noted that the post was quickly deleted, stating: “The post by @Washizu Iwao was posted at 9:42pm EU time. It was reported seven times. After 32 minutes it was deleted by @Ride, one of our admins. The user was also banned.”Moon noted that KiwiFarms was quicker to remove the offending comment than Facebook was to remove footage of the Christchurch shooting: “Our website makes no money. All of our moderators are volunteers. It took Facebook (with a 24/7 staff of paid moderators) 29 minutes to remove the Christchurch shooting from Facebook Live.”
+
+Moon finished the post stating:
+
+On August 31st, Matthew Prince released a strong statement defending his role as a service provider and not a regulatory body. 3 days later, something scared him. I don’t know what it was, but it achieved the desired result. In his explanation post, which reads as rushed and irrational, he tries to mitigate the whiplash between the two opposing statements by saying we are the worst site he has ever seen – because one post (which was already deleted by the time he pulled the plug) made a violent threat.
+
+The precedent has been set. At Cloudflare, with enough pressure, a single post by a strange account can be made to threaten a 9-year-old community and the tens of thousands of people who have used it every day for years. There has never been a violent incident in our history, which cannot be said for many other sites still on Cloudflare. This narrative feels like a lie spun up to save face.
+Even now, I have received zero communication from Cloudflare, U.S. Law Enforcement, or the Irish Garda regarding anything related to #DropKiwiFarms or its members.
+
+This concerns me and should deeply concern everyone about the state of the Internet.
+
+I’ll have more to say later. I’ve not yet moved my domains from Cloudflare, because a part of me thinks that Matthew will recognize this as an err in judgement. This is honestly too asinine for me to accept as reality.
+
+As it stands, Kiwi Farms is operating at KiwiFarms.Top and has received DDOS protection from VanwaTech which provides cloud services for multiple websites including the Daily Stormer and alleges to be dedicated to free speech. The company’s website states: “You can trust that VanwaTech will be there for you as you grow and when you need it most. VanwaTech is the industry leader in free speech and resiliency.”
+
+Breitbart Tech will continue to report on the situation.
+
+Please let us know if you're having issues with commenting.
+

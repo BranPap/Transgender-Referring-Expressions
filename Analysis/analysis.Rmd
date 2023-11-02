@@ -1,0 +1,855 @@
+---
+title: "Transgender Identities in Breitbart"
+author:
+  - Bran[don] Papineau^1^
+  - ^1^*Stanford University*
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+      toc: true
+      toc_float: true
+      number_sections: false
+      collapsed: false
+header-includes: |
+    \usepackage{gb4e}
+---
+
+# Introduction
+
+<!-- Here are some preliminaries: Package read ins, two custom color palettes, and the default ggplot theme -->
+
+```{r include=FALSE}
+library(tidyverse)
+library(ggrepel)
+library(lubridate)
+library(ggpubr)
+library(ggpubr)
+library(ggalt)
+library(matrixStats)
+
+bran_palette = c("#7ae7e5", "#fe5f55", "#B2A6DE", "#14342b", "#69385c")
+sec_palette = c("#3d405b","#e07a5f","#81b29a","f2cc8f")
+bran_binary = c("#003049","#d62828")
+
+theme_set(theme_minimal())
+
+sourceColors = c("#FF5500","#ED77AB")
+
+branBinary2 = c("#574D68","#F2E86D")
+
+source("helpers.R")
+```
+
+
+```{r include=FALSE}
+breitbartPromote <- read_tsv("breitbartOutput.tsv") %>% 
+  filter(str_detect(Verb, "promot")==TRUE)
+
+# breitbartPromote %>% 
+#   filter(is.na(Obj)) %>% 
+#   count()
+
+breitbartThreaten <- read_tsv("breitbartOutput.tsv") %>% 
+  filter(str_detect(Verb, "threaten"))
+
+breitbartNouns <- read_tsv("breitbartNouns.tsv") 
+# 
+# pnPromote <- read_tsv("pnPromote.tsv") 
+
+# pnPromote %>% 
+#   filter(is.na(Obj)) %>% 
+#   count()
+
+VerbVals <- read.csv("VerbVals.csv") %>% 
+  unique()
+
+breitbartIdeoVPs <- read_tsv("TransIdeoNouns.tsv")
+
+verbCounts <- read_tsv("TransIdeoNouns.tsv") %>% 
+  group_by(Verb) %>% 
+  summarize(count = n())
+
+breitData <- left_join(VerbVals,breitbartIdeoVPs)
+
+breitData <- left_join(breitData,verbCounts)
+
+breitbartFighting <- read.csv("breitbartFighting.csv") %>% 
+  mutate(source = "Breitbart")
+
+PNFighting <- read.csv("PNFighting.csv") %>% 
+  mutate(source="PinkNews") 
+
+bothFighting <- rbind(breitbartFighting,PNFighting)
+```
+
+```{r include=FALSE}
+VerbVals <- read.csv("VerbVals.csv") %>% 
+  unique() %>% 
+  mutate(mode = "Standard")
+
+UnkedVerbVals <- read.csv("verbValsUnked.csv") %>% 
+  unique() %>% 
+  # mutate(mode="UNK") %>% 
+  mutate(UnkGood = Good,
+         UnkBad = Bad,
+         UnkGoodBadValue = GoodBadValue,
+         UnkPeaceful = Peaceful,
+         UnkViolent = Violent,
+         UnkPeacefulViolentValue = PeacefulViolentValue) %>% 
+  select(c(Sentence,UnkGood,UnkBad,UnkGoodBadValue,UnkPeaceful,UnkViolent,UnkPeacefulViolentValue))
+
+VerbValsAll <- left_join(breitData,UnkedVerbVals)
+```
+
+## Metadata {.tabset}
+
+### Breitbart 
+
+```{r include=FALSE}
+Meta <- read.csv("textList.csv") %>% 
+  unique() %>% 
+  mutate(source = "Breitbart")
+
+Meta$dateTime<-as.Date(Meta$dateTime)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Meta %>% 
+  group_by(month = lubridate::floor_date(dateTime, 'month')) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=month, y=count)) + 
+  geom_point(stat = "identity") + 
+  geom_hline(yintercept = 19.35, color="orange")  + 
+  geom_smooth(color="#FF5500") + 
+  labs(x="Time",y="Number of Articles Posted", title = "Articles tagged \'transgender\' on Breitbart")
+```
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+Meta %>% 
+  group_by(month = lubridate::floor_date(dateTime, 'month')) %>% 
+  summarise(count = n()) %>% 
+  summary()
+```
+
+
+### PN 
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+PNMeta <- read.csv("PNtextList.csv") %>% 
+  unique() %>% 
+  mutate(dateTime = lubridate::mdy(dateTime)) %>% 
+  mutate(source = "PinkNews")
+
+PNMeta$dateTime<-as.Date(PNMeta$dateTime)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+PNMeta %>% 
+  group_by(month = lubridate::floor_date(dateTime, 'month')) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=month, y=count)) + 
+  geom_point(stat = "identity") + 
+  geom_hline(yintercept = 11.75, color="pink")  + 
+  geom_smooth(color="#ED77AB") + 
+  labs(x="Time",y="Number of Articles Posted", title = "Articles tagged \'transgender\' on Pink News")
+```
+
+```{r include=FALSE}
+PNMeta %>% 
+  group_by(month = lubridate::floor_date(dateTime, 'month')) %>% 
+  summarise(count = n()) %>% 
+  summary()
+```
+
+
+
+### Combined
+
+```{r include=FALSE}
+BothMeta <- rbind(PNMeta,Meta)
+```
+
+```{r echo=FALSE, message=FALSE}
+BothMeta %>% 
+  group_by(month = lubridate::floor_date(dateTime, 'month'),source) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x=month, y=count, color=source)) + 
+  geom_point(stat = "identity") + 
+  geom_hline(yintercept = 11.75, color="#F2E86D")  + 
+  geom_hline(yintercept = 19.35, color="#003049")  + 
+  geom_smooth() + 
+  labs(x="Time",y="Number of Articles Posted", title = "Articles tagged \'transgender\' on Pink News & Breitbart") + 
+  scale_color_manual(values = branBinary2) +
+  theme(text = element_text(size=18))
+```
+
+```{r}
+ggsave("qp2MetaData.png",width=12, height = 6)
+```
+
+# Analysis
+
+## Fighting Words Results
+
+```{r echo=FALSE}
+bothFighting %>% 
+  ggplot(aes(x=reorder(Bigram,Score),y=Score,fill=source)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  scale_fill_manual(values = sourceColors) + 
+  ylim(-22,22) + 
+  labs(x="Bigram",y="Score",fill="Source",title="Fighting Words Algorithm Results")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plotTest<- CompBioBreitWPM %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=BreitWPM,xend=PNWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompBioBreitWPM,PinkNews!="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  geom_text(data=subset(CompBioBreitWPM,PinkNews=="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=3) +
+  theme_minimal() + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: Breitbart") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-10,80) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+
+
+```
+
+
+
+```{r}
+dodge = position_dodge(0.9)
+```
+
+
+
+
+
+
+
+## Collocation Frequencies {.tabset}
+
+### Biological
+
+```{r include=FALSE}
+PNBioWPM <- read.csv("PNbiologicalBigramRaw.csv") %>% 
+  mutate(source = "PinkNews")
+
+BreitbartBioWPM <- read.csv("biologicalBigramRaw.csv") %>% 
+  mutate(source = "Breitbart")
+
+BiologicalRaw <- rbind(BreitbartBioWPM,PNBioWPM)
+
+CompBioPNWPM <- BiologicalRaw %>% 
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  filter(PinkNews > 4) 
+
+CompBioBreitWPM <- BiologicalRaw %>%
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>%      replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  filter(Breitbart > 110)
+
+CompBioBreitWPM <- CompBioBreitWPM %>% 
+  mutate(BreitWPM = (Breitbart/8800000) * 1000000,
+         PNWPM = (PinkNews/5800000) * 1000000,
+         higher = ifelse(BreitWPM > PNWPM,BreitWPM,PNWPM),
+         higherSource = ifelse(BreitWPM > PNWPM,"Breitbart","PinkNews"),
+         lower = ifelse(BreitWPM > PNWPM,PNWPM,Breitbart),
+         lowerSource = ifelse(BreitWPM > PNWPM,"PinkNews","Breitbart"),
+         distance = higher-lower)
+
+CompBioPNWPM <- CompBioPNWPM %>% 
+  mutate(BreitWPM = (Breitbart/8800000) * 1000000,
+         PNWPM = (PinkNews/5800000) * 1000000,
+         higher = ifelse(BreitWPM > PNWPM,BreitWPM,PNWPM),
+         higherSource = ifelse(BreitWPM > PNWPM,"Breitbart","PinkNews"),
+         lower = ifelse(BreitWPM > PNWPM,PNWPM,BreitWPM),
+         lowerSource = ifelse(BreitWPM > PNWPM,"PinkNews","Breitbart"),
+         distance = higher-lower)
+```
+
+```{r}
+sampledBiologicalSex <- replicate(1000,sample(c("BB","PN"), size = 671, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(biologicalSex, value = "BB")
+test3 <- colCounts(biologicalSex, value = "PN")
+
+mean(test2)
+mean(test3)
+
+biologicalSex <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="biological sex") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "biological sex",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+sampledBiologicalMales <- replicate(1000,sample(c("BB","PN"), size = 247, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(sampledBiologicalMales, value = "BB")
+test3 <- colCounts(sampledBiologicalMales, value = "PN")
+
+mean(test2)
+mean(test3)
+
+biologicalMales <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="biological males") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "biological males",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+sampledBiologicalWomen <- replicate(1000,sample(c("BB","PN"), size = 149, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(sampledBiologicalWomen, value = "BB")
+test3 <- colCounts(sampledBiologicalWomen, value = "PN")
+
+mean(test2)
+mean(test3)
+
+biologicalWomen <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="biological women") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "biological women",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+sampledABiological <- replicate(1000,sample(c("BB","PN"), size = 257, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(sampledABiological, value = "BB")
+test3 <- colCounts(sampledABiological, value = "PN")
+
+mean(test2)
+mean(test3)
+
+ABiological <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="a biological") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "a biological",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+sampledTheBiological <- replicate(1000,sample(c("BB","PN"), size = 118, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(sampledTheBiological, value = "BB")
+test3 <- colCounts(sampledTheBiological, value = "PN")
+
+mean(test2)
+mean(test3)
+
+theBiological <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="the biological") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "the biological",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+sampledBiologicalFemales <- replicate(1000,sample(c("BB","PN"), size = 116, prob=c(.6,.4), replace=TRUE), simplify = TRUE)
+
+test2 <- colCounts(sampledBiologicalFemales, value = "BB")
+test3 <- colCounts(sampledBiologicalFemales, value = "PN")
+
+mean(test2)
+mean(test3)
+
+biologicalFemales <- data.frame("BB" = test2,
+                   "PN" = test3) %>% 
+  mutate(BB = (BB/8800000) * 1000000) %>% 
+  mutate(PN = (PN/8800000) * 1000000) %>% 
+  mutate(n.gram="biological females") %>% 
+  summarize(
+    mean = mean(BB),
+    CI.Low = ci.low(BB),
+    CI.High = ci.high(BB),
+    YMin = mean - CI.Low,
+    YMax = mean + CI.High, 
+    n.gram = "biological females",
+    PNmean = mean(PN),
+    PNCI.Low = ci.low(PN),
+    PNCI.High = ci.high(PN),
+    PNYMin = PNmean - PNCI.Low,
+    PNYMax = PNmean + PNCI.High
+    )
+```
+
+```{r}
+BreitbartConfidences <- rbind(biologicalSex,biologicalMales) 
+BreitbartConfidences <- rbind(BreitbartConfidences,biologicalWomen)
+BreitbartConfidences <- rbind(BreitbartConfidences,theBiological)
+BreitbartConfidences <- rbind(BreitbartConfidences,biologicalFemales)
+```
+
+
+```{r}
+NEW <- left_join(CompBioBreitWPM,BreitbartConfidences)
+
+NEW$n.gram
+
+NEW$n.gram
+```
+
+
+```{r}
+NEW %>% 
+  # filter(n.gram =="biological sex") %>% 
+  ggplot(aes(x=n.gram, y=BreitWPM)) + 
+  geom_point() +
+  geom_point(aes(x=n.gram, y=PNWPM)) +
+  geom_point(aes(x=n.gram,y=mean)) +
+  geom_point(aes(x=n.gram,y=PNmean)) +
+  geom_errorbar(aes(ymin = YMin, ymax=YMax),
+                width=0.25, position=dodge) + 
+  geom_errorbar(aes(ymin = PNYMin, ymax=PNYMax),
+                width=0.25, position=dodge) + 
+  coord_flip()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+ ###NO 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+CompBioBreitWPM %>% 
+  filter(n.gram=="biological sex") %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=BreitWPM,xend=PNWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompBioBreitWPM,n.gram=="biological sex"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  # geom_text(data=subset(CompBioBreitWPM,PinkNews=="0",),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=3) +
+  theme_minimal() + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: Breitbart") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-10,80) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+CompBioBreitWPM %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=BreitWPM,xend=PNWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompBioBreitWPM,PinkNews!="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  geom_text(data=subset(CompBioBreitWPM,PinkNews=="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=3) +
+  theme_minimal() + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: Breitbart") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-10,80) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+```
+
+```{r}
+biologicalPermutation <- read.csv("biologicalPermutation.csv")
+
+breitbartBiologicalPermutationMean = (mean(biologicalPermutation$Breitbart)/8800000) * 1000000
+pinkNewsBiologicalPermutationMean = (mean(biologicalPermutation$PinkNews)/5800000) * 1000000
+```
+
+```{r}
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+CompBioPNWPM %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=PNWPM,xend=BreitWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompBioPNWPM,Breitbart!="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  theme_minimal() + 
+  geom_text(data=subset(CompBioPNWPM,Breitbart=="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=3) + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: PinkNews") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-10,80) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+```
+
+
+### Transgender
+
+```{r include=FALSE}
+TransWPMExclude <- list("a transgender","of transgender", "the transgender", "that transgender","for transgender","on transgender","transgender and", "and transgender")
+
+PNTransgenderWPM <- read.csv("PNtransgenderBigramRaw.csv") %>% 
+  mutate(source = "PinkNews")
+
+BreitbartTransgenderWPM <- read.csv("transgenderBigramRaw.csv") %>% 
+  mutate(source = "Breitbart")
+
+TransgenderRaw <- rbind(BreitbartTransgenderWPM,PNTransgenderWPM)
+
+CompTransPNWPM <- subset(TransgenderRaw, !(n.gram %in% TransWPMExclude)) %>% 
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  filter(PinkNews > 190)
+
+CompTransBreitWPM <- subset(TransgenderRaw, !(n.gram %in% TransWPMExclude)) %>%
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  filter(Breitbart > 205)
+
+CompTransBreitWPM <- CompTransBreitWPM %>% 
+  mutate(BreitWPM = (Breitbart/8800000) * 1000000,
+         PNWPM = (PinkNews/5800000) * 1000000,
+         higher = ifelse(BreitWPM > PNWPM,BreitWPM,PNWPM),
+         higherSource = ifelse(BreitWPM > PNWPM,"Breitbart","PinkNews"),
+         lower = ifelse(BreitWPM > PNWPM,PNWPM,BreitWPM),
+         lowerSource = ifelse(BreitWPM > PNWPM,"PinkNews","Breitbart"),
+         distance = higher-lower
+         )
+
+CompTransPNWPM <- CompTransPNWPM %>% 
+  mutate(BreitWPM = (Breitbart/8800000) * 1000000,
+         PNWPM = (PinkNews/5800000) * 1000000,
+         higher = ifelse(BreitWPM > PNWPM,BreitWPM,PNWPM),
+         higherSource = ifelse(BreitWPM > PNWPM,"Breitbart","PinkNews"),
+         lower = ifelse(BreitWPM > PNWPM,PNWPM,BreitWPM),
+         lowerSource = ifelse(BreitWPM > PNWPM,"PinkNews","Breitbart"),
+         distance = higher-lower
+         )
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+CompTransBreitWPM %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=BreitWPM,xend=PNWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompTransBreitWPM,PinkNews!="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  theme_minimal() + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: Breitbart") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-40,400) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+CompTransPNWPM %>% 
+  ggplot(aes(y=reorder(n.gram,distance),x=PNWPM,xend=BreitWPM)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25) + 
+  geom_point(size=5, aes(x = BreitWPM, color = "Breitbart"))+
+  geom_point(size=5, aes(x = PNWPM, color = "PinkNews"))+
+  geom_text(aes(x=higher,label=trunc(higher*10^2)/10^2,color=higherSource,fontface="bold"),hjust=-.5) + 
+  geom_text(data=subset(CompTransPNWPM,Breitbart!="0"),aes(x=lower,label=trunc(lower*10^2)/10^2,color=lowerSource,fontface="bold"),hjust=1.5) +
+  theme_minimal() + 
+  scale_color_manual(values = c("#FF5500","#ED77AB")) + 
+ labs(y="Collocation",color="News Source",x="Words Per Million",title="Top 10 Collocations: PinkNews") + 
+ theme(legend.position = "top", text=element_text(size=14)) + 
+  xlim(-50,400) +
+  theme(panel.background = element_blank(), panel.grid.major.y = element_blank(),panel.grid.minor.x = element_blank())
+```
+
+
+## Verbal Analyses {.tabset .tabset-fade}
+
+### Breitbart
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# breitbart_edited <-
+
+breitbartPromote %>%  
+  mutate(ObjEdit = case_when(
+    str_detect(Obj, "ideology|ideologies") == TRUE ~ "ideology",
+    str_detect(Obj, "transgenderism") == TRUE ~ "transgenderism",
+    str_detect(Obj, "agenda|movement") == TRUE ~ "agenda",
+    str_detect(Obj, "hormone|hormonal|hormones|puberty|blockers") == TRUE ~ "hormones",
+    str_detect(Obj, "sex change|mutilation|treatments|sterilization|castration|procedures|transformation of|gender -- affirming care|masculinizing|feminizing") == TRUE ~ "medical transitions",
+    str_detect(Obj, "gender identity|fluidity|gender theory|gender fluid") == TRUE ~ "fluidity and identity",
+    str_detect(Obj, "equality|inclusion|diversity|tolerance|inclusiveness") == TRUE ~ "DEI",
+    str_detect(Obj, "violent|violence") == TRUE ~ "violence",
+    TRUE ~ "Other")) %>% 
+  mutate(MacroObj = case_when(
+    ObjEdit %in% c("transgenderism","ideology","agenda","fluidity and identity") ~ "transgender ideology", 
+    ObjEdit %in% c("medical transitions","hormones") ~ "medical transition",
+    TRUE ~ ObjEdit
+  )) %>% 
+  # filter(ObjEdit %in% c("ideology","transgenderism","agenda")) %>%
+  group_by(MacroObj) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(MacroObj,-count),y=count,fill=MacroObj)) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "none") + 
+  ylim(0,170) + 
+  scale_fill_manual(values = bran_palette) + 
+  labs(x="Complements of Promote by Category",y="Count",title="Complements of 'Promote' in Breitbart")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+breitData %>%  
+  filter(!is.na(Verb)) %>% 
+  mutate(PeaceVioAbs = Peaceful - Violent) %>% 
+  mutate(GoodBadAbs = Good - Bad) %>% 
+  group_by(Verb,PeacefulViolentValue) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(Verb,-count),y=count,fill=PeacefulViolentValue)) +
+  geom_text(aes(label=count,hjust=-0.2,vjust=)) +
+  geom_text(x="is", y=73, label="71") + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme(legend.position = "bottom") + 
+  ylim(0,80) + 
+  labs(x="Verb",y="Tokens",title="Verbs with Subject 'Transgender Ideology' in Breitbart",fill="Sentence Valence") + 
+  scale_fill_manual(values = bran_binary) +
+  theme(text = element_text(size=18))
+```
+
+```{r}
+ggsave("qp2Verbs.png",width = 12, height=6)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+VerbValsAll %>%
+  filter(!is.na(Verb)) %>% 
+  group_by(Verb,UnkPeacefulViolentValue) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(Verb,-count),y=count,fill=UnkPeacefulViolentValue)) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "bottom") + 
+  ylim(0,80) + 
+  labs(x="Verb",y="Tokens",title="Verbs with Subject 'Transgender Ideology' in Breitbart (Unked)",fill="Verb Valence") + 
+  scale_fill_manual(values = bran_binary)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+breitData %>%  
+  filter(!is.na(Verb)) %>% 
+  mutate(PeaceVioAbs = Peaceful - Violent) %>% 
+  mutate(GoodBadAbs = Good - Bad) %>% 
+  group_by(Verb,GoodBadValue) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(Verb,-count),y=count,fill=GoodBadValue)) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "bottom") + 
+  ylim(0,80) + 
+  labs(x="Verb",y="Tokens",title="Verbs with Subject 'Transgender Ideology' in Breitbart",fill="Verb Valence") + 
+  scale_fill_manual(values = bran_binary, limits=c("positive","negative"))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+breitData %>%  
+  filter(!is.na(Verb)) %>% 
+  mutate(PeaceVioAbs = Peaceful - Violent) %>% 
+  group_by(Verb,PeaceVioAbs) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(Verb,-count),y=count,fill=PeaceVioAbs)) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "bottom") + 
+  ylim(0,80) + 
+  labs(x="Verb",y="Tokens",title="Verbs with Subject 'Transgender Ideology' in Breitbart",fill="Verb Valence") + 
+  scale_fill_viridis_c(option = "magma")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+breitData %>%  
+  filter(!is.na(Verb)) %>% 
+  mutate(PeaceVioAbs = Peaceful - Violent) %>% 
+  mutate(GoodBadAbs = Good - Bad) %>% 
+  group_by(Verb,PeaceVioAbs,GoodBadAbs,PeacefulViolentValue) %>%
+  ggplot(aes(x=PeaceVioAbs,y=GoodBadAbs,color=PeacefulViolentValue,label = Verb)) + 
+  geom_point()  + 
+  geom_label_repel() 
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+breitData %>%
+  filter(TransModified == "ideology") %>% 
+  filter(Verb == "is") %>% 
+  mutate(VP = case_when(
+    str_detect(Sentence,"popular") == TRUE ~ "is unpopular",
+    str_detect(Sentence, "eroding|threat") == TRUE ~ "is threatening women's rights",
+    str_detect(Sentence, "blocked") == TRUE ~ "is being blocked legislatively",
+    str_detect(Sentence, "prodding") == TRUE ~ "is prodding children towards surgery",
+    str_detect(Sentence, "covertly") == TRUE ~ "is being covertly funded",
+    str_detect(Sentence, "supported") == TRUE ~ "is supported by",
+    str_detect(Sentence, "stereotypes") == TRUE ~ "is based on stereotypes",
+    TRUE ~ VP
+  )) %>%
+  group_by(VP,GoodBadValue) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(VP,-count),y=count),fill=GoodBadValue) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "bottom") + 
+  ylim(0,80) + 
+  labs(x="Verb Phrase",y="Tokens",title="'Transgender Ideology is' continuations in Breitbart") + 
+  scale_fill_brewer(palette="Set2")
+```
+
+
+### PinkNews 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+pnPromote %>%  
+  mutate(ObjEdit = case_when(
+    str_detect(Obj, "ideology|ideologies") == TRUE ~ "ideology",
+    str_detect(Obj, "transgenderism") == TRUE ~ "transgenderism",
+    str_detect(Obj, "agenda|movement") == TRUE ~ "agenda",
+    str_detect(Obj, "hormone|hormonal|hormones|puberty|blockers") == TRUE ~ "hormones",
+    str_detect(Obj, "sex change|mutilation|treatments|sterilization|castration|procedures|transformation of|gender -- affirming care|masculinizing|feminizing") == TRUE ~ "medical transitions",
+    str_detect(Obj, "gender identity|fluidity|gender theory|gender fluid") == TRUE ~ "fluidity and identity",
+    str_detect(Obj, "equality|inclusion|diversity|tolerance|inclusiveness") == TRUE ~ "DEI",
+    str_detect(Obj, "violent|violence") == TRUE ~ "violence",
+    TRUE ~ "Other")) %>% 
+  mutate(MacroObj = case_when(
+    ObjEdit %in% c("transgenderism","ideology","agenda","fluidity and identity") ~ "transgender ideology", 
+    ObjEdit %in% c("medical transitions","hormones") ~ "medical transition",
+    TRUE ~ ObjEdit
+  )) %>% 
+  # filter(ObjEdit %in% c("ideology","transgenderism","agenda")) %>%
+  group_by(MacroObj) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x=reorder(MacroObj,-count),y=count,fill=MacroObj)) +
+  geom_text(aes(label=count,hjust=-0.2)) +
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "none") + 
+  ylim(0,170)
+```
+
+
+# Verb Counts
+
+
+```{r}
+breitbartVerbList = read.csv("breitbartVerbList.csv")
+```
+
+```{r}
+breitbartVerbList %>% 
+  group_by(verb) %>% 
+  summarize(count = n()) %>% 
+  arrange(-count)
+```
+
+accept|establish|force|impose|push|validate|change|require|endorse|promote|protect
+
+
+
+
+

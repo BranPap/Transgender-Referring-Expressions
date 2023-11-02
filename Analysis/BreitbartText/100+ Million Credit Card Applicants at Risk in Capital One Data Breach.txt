@@ -1,0 +1,18 @@
+100+ Million Credit Card Applicants at Risk in Capital One Data Breach
+
+According to a recent report, at least 140,000 social security numbers and 80,000 bank account numbers have been put at risk following a data breach involving more than 100 million credit card applicants’ information.
+
+NBC News reports that a 33-year-old transgender woman who worked as a software engineer in Seattle has been arrested in relation to a massive data breach which puts over 100 million Capital One credit card applicants at risk. Paige A. Thompson allegedly accessed information from the Capital One bank through an improperly managed security feature and posted this information on a data-sharing site, a criminal complaint alleges.
+
+Capital One was contacted on July 17 by an anonymous individual alleged that the leaked data which was later discovered to belong to Thompson had been posted GitHub, a website used by software engineers to post and collaboratively develop digital projects. The post was investigated by Capital One staff and appeared to include detailed instructions on how to access Capital One’s private information. The bank stated that 140,000 Social Security numbers and 80,000 bank accounts were potentially put at risk as a result of the data breach.
+
+The indictment of Paige Thompson clearly indicates she wanted to be caught.Breaking into Capitol One and posting about in Slack is beyond stupid.Her time should have been spent on bug bounties rather than unauthorized intrusions.Lessons learned?https://t.co/novW4OLsX2
+
+— Kevin Mitnick (@kevinmitnick) July 30, 2019
+
+In a Twitter message obtained by the FBI, Thomspon going by the pseudonym “erratic” said that he had “basically strapped myself with a bomb vest, f—ing dropping capitol one dox and admitting it.” Thompson stated that he was in possession of social security numbers and other personal details, implying that he planned to distribute this information publicly writing: “I wanna distribute those buckets I think first.”
+
+Lucas Nolan is a reporter for Breitbart News covering issues of free speech and online censorship. Follow him on Twitter @LucasNolan or email him at lnolan@breitbart.com
+
+Please let us know if you're having issues with commenting.
+

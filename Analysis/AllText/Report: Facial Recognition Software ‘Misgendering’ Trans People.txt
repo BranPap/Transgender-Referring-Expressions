@@ -1,0 +1,18 @@
+Report: Facial Recognition Software ‘Misgendering’ Trans People
+
+Facial recognition software’s struggle to identify transgender and “nonbinary” people could have dangerous results in the future, according to a report from Vice’s Motherboard.
+
+“The problems can be severe for transgender and nonbinary people because most facial recognition software is programmed to sort people into two groups—male or female,” claimed Vice’s Motherboard, Tuesday. “Because these systems aren’t designed with transgender and gender nonconforming people in mind, something as common as catching a flight can become a complicated nightmare. It’s a problem that will only get worse as the TSA moves to a full biometric system at all airports and facial recognition technology spreads.”
+
+Os Keyes, the Ph.D. student behind the study, proclaimed, “We’re talking about the extension of trans erasure… That has immediate consequences. The more stuff you build a particular way of thinking into, the hard it is to unpick that way of thinking… AGR research fundamentally ignores the existence of transgender people, with dangerous results.”
+
+“The average [computer science] student is never going to take a gender studies class,” Keyes expressed. “They’re not probably going to even take an ethics class. It’d be good if they did.”
+
+Amazon’s facial recognition tool, Rekognition, reportedly misidentified 28 members of Congress as police suspects, and mistook criminals on the FBI’s Most Wanted List for famous celebrities.
+
+Facial recognition tools used by British law enforcement are also wildly inaccurate, with a London facial recognition program reportedly being 98 percent inaccurate.
+
+Charlie Nash is a reporter for Breitbart Tech. You can follow him on Twitter @MrNashington, or like his page at Facebook.
+
+Please let us know if you're having issues with commenting.
+
