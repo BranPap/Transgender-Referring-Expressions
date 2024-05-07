@@ -1,0 +1,14 @@
+Role,AveDmg,AveHeal,Type
+Tank,10,2,Push
+Tank,12,0,Attack
+Tank,14,0,Attack
+Tank,9,0,Defend
+Tank,10,3,Push
+DPS,12,2,Defend
+DPS,8,1,Defend
+DPS,14,0,Push
+DPS,17,0,Attack
+Support,3,14,Attack
+Support,5,12,Attack
+Support,0,15,Defend
+Support,6,10,Push

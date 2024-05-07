@@ -1,0 +1,5 @@
+persona,biological male,transgender woman,trans woman
+{conservative;bioessentialist},0.52,0.48,0.00
+{conservative;gender-progressive},0,1,0
+{progressive;bioessentialist},0,1,0
+{progressive;gender-progressive},0,.001,.999

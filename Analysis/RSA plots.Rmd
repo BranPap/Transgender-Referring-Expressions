@@ -1,0 +1,125 @@
+---
+title: "RSA Plots for Variation in Transgender Referring Expressions"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+custom_legend_names <- c("Biological male", "Transgender woman", "Trans woman")
+```
+
+
+# Naive
+
+
+```{r}
+# Your data
+naive <- read.csv("naivepriors.csv")
+
+# Reshape the data to long format
+data_long <- reshape2::melt(naive)
+naivePriors <- data_long %>% 
+  mutate(priors="Naive")
+
+# Plot using ggplot2
+ggplot(data_long, aes(x = persona, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Probability of Utterance Based on Intended Persona",
+       x = "Intended Persona",
+       y = "Probability",
+       fill = "Referring Expression") +
+  theme_bw() + 
+  scale_fill_manual(values = cbPalette,
+                    labels=c("Biological Male","Transgender Woman", "Trans Woman")) + 
+  scale_x_discrete(labels = c("{conservative,\nbioessentialist}","{conservative,\ngender-progressive}","{progressive,\nbioessentialist}","{progressive,\ngender-progressive}")) + 
+  theme(text = element_text(size=18))
+
+# Save
+ggsave("NaivePlot.png",height=6, width=12)
+```
+
+
+# Breitbart
+
+```{r}
+# Your data
+naive <- read.csv("BreitbartPriors.csv")
+
+# Reshape the data to long format
+data_long <- reshape2::melt(naive)
+BreitbartPriors <- data_long %>% 
+  mutate(priors = "Breitbart")
+
+# Plot using ggplot2
+ggplot(data_long, aes(x = persona, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Probability of Utterance Based on Intended Persona",
+       x = "Intended Persona",
+       y = "Probability",
+       fill = "Referring Expression") +
+  theme_bw() + 
+  scale_fill_manual(values = cbPalette,
+                    labels=c("Biological Male","Transgender Woman", "Trans Woman")) + 
+  scale_x_discrete(labels = c("{conservative,\nbioessentialist}","{conservative,\ngender-progressive}","{progressive,\nbioessentialist}","{progressive,\ngender-progressive}")) + 
+  theme(text = element_text(size=18))
+
+# Save
+ggsave("BreitbartPlot.png",height=6, width=12)
+```
+
+
+# PinkNews
+
+```{r}
+# Your data
+naive <- read.csv("PinkNewsPriors.csv")
+
+# Reshape the data to long format
+data_long <- reshape2::melt(naive)
+PnPriors <- data_long %>% 
+  mutate(priors = "PinkNews")
+
+# Plot using ggplot2
+ggplot(data_long, aes(x = persona, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Probability of Utterance Based on Intended Persona",
+       x = "Intended Persona",
+       y = "Probability",
+       fill = "Referring Expression") +
+  theme_bw() + 
+  scale_fill_manual(values = cbPalette,
+                    labels=c("Biological Male","Transgender Woman", "Trans Woman")) + 
+  scale_x_discrete(labels = c("{conservative,\nbioessentialist}","{conservative,\ngender-progressive}","{progressive,\nbioessentialist}","{progressive,\ngender-progresosive}")) + 
+  theme(text = element_text(size=18))
+
+# Save
+ggsave("PinkNewsPlot.png",height=6, width=12)
+```
+
+```{r}
+all_data <- rbind(BreitbartPriors,PnPriors,naivePriors)
+
+# Plot using ggplot2
+ggplot(all_data, aes(x = persona, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  # geom_text(aes(x=persona, y=value, hjust=-2, label=value)) +
+  labs(x = "Persona to be conveyed",
+       y = "Probability of expression being selected",
+       fill = "Referring Expression") +
+  theme_bw() + 
+  scale_fill_manual(values = cbPalette,
+                    labels=c("Biological Male","Transgender Woman", "Trans Woman")) + 
+  scale_x_discrete(labels = c("{conservative,\nbioessentialist}","{conservative,\ngender-progressive}","{progressive,\nbioessentialist}","{progressive,\ngender-progressive}")) + 
+  theme(text = element_text(size=18), legend.position = "bottom") +
+  facet_wrap(~priors) + 
+  coord_flip()
+```
+
+```{r}
+ggsave("PriorsPlot.png",height=6, width=12)
+```
+
+

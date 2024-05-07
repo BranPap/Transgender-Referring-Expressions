@@ -1,0 +1,712 @@
+---
+title: "Transgender Identities in Breitbart: A Corpus-Assisted Critical Discourse Analysis"
+author:
+  - Bran[don] Papineau^1^
+  - ^1^*Stanford University*
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+      toc: true
+      toc_float: true
+      toc_depth: 4
+      number_sections: false
+      collapse: null
+      theme: flatly
+header-includes: |
+    \usepackage{gb4e}
+    \usepackage{booktabs}
+bibliography: references.bib
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(ggrepel)
+library(lubridate)
+library(ggpubr)
+library(ggpubr)
+library(ggalt)
+library(matrixStats)
+library(knitr)
+source("helpers.R")
+theme_set(theme_minimal())
+dodge = position_dodge(0.9)
+bran_binary = c("#003049","#d62828")
+bran_ternary = c("#a5a69fff", "#9db320ff", "#218b9eff")
+
+funx <- function(count, valueToReturn) {
+  set.seed(count)
+  sample <- replicate(100,sample(c("BB","PN"), size = count, prob=c(0.6027397,0.3972603), replace=TRUE),simplify=TRUE)
+  # print(as.integer(total))
+  BBCounts <- colCounts(sample, value="BB")
+  PNCounts <- colCounts(sample, value="PN")
+  sampleOutput <- data.frame("BB" = BBCounts,
+                             "PN" = PNCounts)
+  BBMean = mean(sampleOutput$BB)
+  mean = mean(sampleOutput$BB)
+  CI.Low = ci.low(sampleOutput$BB)
+  CI.High = ci.high(sampleOutput$BB)
+  YMin = mean - CI.Low
+  YMax = mean + CI.High
+  PNmean = mean(sampleOutput$PN)
+  PNCI.Low = ci.low(sampleOutput$PN)
+  PNCI.High = ci.high(sampleOutput$PN)
+  PNYMin = PNmean - PNCI.Low
+  PNYMax = PNmean + PNCI.High
+  if (valueToReturn == "mean") {valueToReturn = mean}
+  else if (valueToReturn == "CI.Low") {valueToReturn = CI.Low}
+  else if (valueToReturn == "CI.High") {valueToReturn = CI.High}
+  else if (valueToReturn == "YMin") {valueToReturn = YMin}
+  else if (valueToReturn == "YMax") {valueToReturn = YMax}
+  else if (valueToReturn == "PNmean") {valueToReturn = PNmean}
+  else if (valueToReturn == "PNCI.Low") {valueToReturn = PNCI.Low}
+  else if (valueToReturn == "PNCI.High") {valueToReturn = PNCI.High}
+  else if (valueToReturn == "PNYMin") {valueToReturn = PNYMin}
+  else if (valueToReturn == "PNYMax") {valueToReturn = PNYMax}
+  return(valueToReturn)
+}
+
+colors <- c("PinkNews" = "#ED77AB", "Breitbart" = "#FF5500")
+sourceColors <- c("#FF5500","#ED77AB")
+
+PNBioWPM <- read.csv("PNbiologicalBigramRaw.csv") %>% 
+  mutate(source = "PinkNews")
+
+BreitbartBioWPM <- read.csv("biologicalBigramRaw.csv") %>% 
+  mutate(source = "Breitbart")
+
+BiologicalRaw <- rbind(BreitbartBioWPM,PNBioWPM)
+
+CompBioBreitWPM <- BiologicalRaw %>%
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  mutate(modifier = ifelse(str_detect(n.gram, "biological \\w+"), "TRUE", "FALSE")) %>% 
+  filter(modifier == "TRUE") %>% 
+  top_n(10, Breitbart)
+
+CompBioBreitWPM <- CompBioBreitWPM %>% 
+  mutate(total = PinkNews + Breitbart) %>% 
+  mutate(distance = abs(Breitbart-PinkNews))
+
+BioNGrams <- CompBioBreitWPM %>%
+  rowwise() %>% 
+  mutate(BB = funx(count=total,valueToReturn = "mean")) %>% 
+  mutate(CI.Low = funx(count=total,valueToReturn = "CI.Low")) %>% 
+  mutate(CI.High = funx(count=total,valueToReturn = "CI.High")) %>% 
+  mutate(YMin = funx(count=total,valueToReturn = "YMin")) %>% 
+  mutate(YMax = funx(count=total,valueToReturn = "YMax")) %>% 
+  mutate(PNmean = funx(count=total,valueToReturn = "PNmean")) %>% 
+  mutate(PNCI.Low = funx(count=total,valueToReturn = "PNCI.Low")) %>% 
+  mutate(PNCI.High = funx(count=total,valueToReturn = "PNCI.High")) %>% 
+  mutate(PNYMin = funx(count=total,valueToReturn = "PNYMin")) %>% 
+  mutate(PNYMax = funx(count=total,valueToReturn = "PNYMax"))  
+  # print(as.integer(total))
+
+PNTrans <- read.csv("PNtransBigramRaw.csv") %>% 
+  mutate(source = "PinkNews")
+
+BreitbartTrans <- read.csv("transBigramRaw.csv") %>% 
+  mutate(source = "Breitbart")
+
+TransRaw <- rbind(BreitbartTrans,PNTrans)
+
+TransRaw <- TransRaw %>%
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) 
+
+```
+
+```{r include=FALSE}
+PNTransgenderPM <- read.csv("PNtransgenderBigramRaw.csv") %>% 
+  mutate(source = "PinkNews")
+
+BreitbartTransgenderWPM <- read.csv("transgenderBigramRaw.csv") %>% 
+  mutate(source = "Breitbart")
+
+TransgenderRaw <- rbind(BreitbartTransgenderWPM,PNTransgenderPM)
+
+TransgenderRaw <- TransgenderRaw %>%
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  mutate(modifier = ifelse(str_detect(n.gram, "transgender \\w+"), "TRUE", "FALSE")) %>% 
+  filter(modifier == "TRUE" & n.gram != "transgender and") %>% 
+  top_n(10, Breitbart)
+
+TransgenderRaw <- TransgenderRaw %>% 
+  mutate(total = PinkNews + Breitbart) %>% 
+  mutate(distance = abs(Breitbart-PinkNews))
+
+TransgenderNGrams <- TransgenderRaw %>%
+  rowwise() %>% 
+  mutate(BB = funx(count=total,valueToReturn = "mean")) %>% 
+  mutate(CI.Low = funx(count=total,valueToReturn = "CI.Low")) %>% 
+  mutate(CI.High = funx(count=total,valueToReturn = "CI.High")) %>% 
+  mutate(YMin = funx(count=total,valueToReturn = "YMin")) %>% 
+  mutate(YMax = funx(count=total,valueToReturn = "YMax")) %>% 
+  mutate(PNmean = funx(count=total,valueToReturn = "PNmean")) %>% 
+  mutate(PNCI.Low = funx(count=total,valueToReturn = "PNCI.Low")) %>% 
+  mutate(PNCI.High = funx(count=total,valueToReturn = "PNCI.High")) %>% 
+  mutate(PNYMin = funx(count=total,valueToReturn = "PNYMin")) %>% 
+  mutate(PNYMax = funx(count=total,valueToReturn = "PNYMax"))  
+  # print(as.integer(total))
+```
+
+<!-- # All Nominals -->
+
+```{r include=FALSE}
+nomList = c("biological male","biological males","biological female", "biological females", "biological man", "biological woman", "biological men", "biological women", "transgender male","transgender males","transgender female", "transgender females", "transgender man", "transgender woman", "transgender men", "transgender women", "trans male","trans males","trans female", "trans females", "trans man", "trans woman", "trans men", "trans women")
+```
+
+
+```{r include=FALSE}
+BiologicalGrams <- BiologicalRaw %>% 
+  pivot_wider(id_cols=n.gram,values_from = PMI,names_from = source ) %>% 
+  replace_na(list("PinkNews"=0, "Breitbart"=0)) %>% 
+  filter(n.gram %in% nomList) %>% 
+  mutate(macroGram = case_when(
+    n.gram %in% c("biological male", "biological males") ~ "biological male(s)",
+    n.gram %in% c("biological female", "biological females") ~ "biological female(s)",
+    n.gram %in% c("biological man", "biological men") ~ "biological man/men",
+    n.gram %in% c("biological woman", "biological women") ~ "biological woman/women"
+  )) %>% 
+  group_by(macroGram) %>% 
+  summarize(Breitbart = sum(Breitbart),
+            PinkNews = sum(PinkNews),
+            total = Breitbart + PinkNews)
+```
+
+```{r include=FALSE}
+TransgenderGrams <- TransgenderRaw %>% 
+  filter(n.gram %in% nomList) %>% 
+  mutate(macroGram = case_when(
+    n.gram %in% c("transgender male", "transgender males") ~ "transgender male(s)",
+    n.gram %in% c("transgender female", "transgender females") ~ "transgender female(s)",
+    n.gram %in% c("transgender man", "transgender men") ~ "transgender man/men",
+    n.gram %in% c("transgender woman", "transgender women") ~ "transgender woman/women"
+  )) %>% 
+  group_by(macroGram) %>% 
+  summarize(Breitbart = sum(Breitbart),
+            PinkNews = sum(PinkNews),
+            total = Breitbart + PinkNews)
+```
+
+```{r include=FALSE}
+TransGrams <- TransRaw %>% 
+  filter(n.gram %in% nomList) %>% 
+  mutate(macroGram = case_when(
+    n.gram %in% c("trans male", "trans males") ~ "trans male(s)",
+    n.gram %in% c("trans female", "trans females") ~ "trans female(s)",
+    n.gram %in% c("trans man", "trans men") ~ "trans man/men",
+    n.gram %in% c("trans woman", "trans women") ~ "trans woman/women"
+  )) %>% 
+  group_by(macroGram) %>% 
+  summarize(Breitbart = sum(Breitbart),
+            PinkNews = sum(PinkNews),
+            total = Breitbart + PinkNews)
+```
+
+```{r include=FALSE}
+BiologicalGrams <- BiologicalGrams %>%
+  rowwise() %>% 
+  mutate(BB = funx(count=total,valueToReturn = "mean")) %>% 
+  mutate(CI.Low = funx(count=total,valueToReturn = "CI.Low")) %>% 
+  mutate(CI.High = funx(count=total,valueToReturn = "CI.High")) %>% 
+  mutate(YMin = funx(count=total,valueToReturn = "YMin")) %>% 
+  mutate(YMax = funx(count=total,valueToReturn = "YMax")) %>% 
+  mutate(PNmean = funx(count=total,valueToReturn = "PNmean")) %>% 
+  mutate(PNCI.Low = funx(count=total,valueToReturn = "PNCI.Low")) %>% 
+  mutate(PNCI.High = funx(count=total,valueToReturn = "PNCI.High")) %>% 
+  mutate(PNYMin = funx(count=total,valueToReturn = "PNYMin")) %>% 
+  mutate(PNYMax = funx(count=total,valueToReturn = "PNYMax")) %>% 
+  mutate(modifier = "biological") 
+```
+
+```{r include=FALSE}
+TransgenderGrams <- TransgenderGrams %>%
+  rowwise() %>% 
+  mutate(BB = funx(count=total,valueToReturn = "mean")) %>% 
+  mutate(CI.Low = funx(count=total,valueToReturn = "CI.Low")) %>% 
+  mutate(CI.High = funx(count=total,valueToReturn = "CI.High")) %>% 
+  mutate(YMin = funx(count=total,valueToReturn = "YMin")) %>% 
+  mutate(YMax = funx(count=total,valueToReturn = "YMax")) %>% 
+  mutate(PNmean = funx(count=total,valueToReturn = "PNmean")) %>% 
+  mutate(PNCI.Low = funx(count=total,valueToReturn = "PNCI.Low")) %>% 
+  mutate(PNCI.High = funx(count=total,valueToReturn = "PNCI.High")) %>% 
+  mutate(PNYMin = funx(count=total,valueToReturn = "PNYMin")) %>% 
+  mutate(PNYMax = funx(count=total,valueToReturn = "PNYMax")) %>% 
+  mutate(modifier = "transgender")
+```
+
+```{r include=FALSE}
+TransGrams <- TransGrams %>%
+  rowwise() %>% 
+  mutate(BB = funx(count=total,valueToReturn = "mean")) %>% 
+  mutate(CI.Low = funx(count=total,valueToReturn = "CI.Low")) %>% 
+  mutate(CI.High = funx(count=total,valueToReturn = "CI.High")) %>% 
+  mutate(YMin = funx(count=total,valueToReturn = "YMin")) %>% 
+  mutate(YMax = funx(count=total,valueToReturn = "YMax")) %>% 
+  mutate(PNmean = funx(count=total,valueToReturn = "PNmean")) %>% 
+  mutate(PNCI.Low = funx(count=total,valueToReturn = "PNCI.Low")) %>% 
+  mutate(PNCI.High = funx(count=total,valueToReturn = "PNCI.High")) %>% 
+  mutate(PNYMin = funx(count=total,valueToReturn = "PNYMin")) %>% 
+  mutate(PNYMax = funx(count=total,valueToReturn = "PNYMax")) %>% 
+  mutate(modifier = "trans")
+```
+
+```{r include=FALSE}
+nominalGrams <- rbind(BiologicalGrams,TransgenderGrams,TransGrams) 
+
+nominalGrams <- nominalGrams %>% 
+  mutate(distance = "help") %>% 
+  mutate(distance = abs(Breitbart-PinkNews)) %>% 
+  mutate(sex = case_when(
+    macroGram %in% c("biological male(s)","trans female(s)","trans woman/women","transgender woman/women","biological man/men") ~ "amab",
+    TRUE ~ "afab"
+  ))
+```
+
+
+# Introduction
+
+There has been a recent increase in interest in hate speech (broadly defined here as language meant to demean a minoritized or disenfranchised group that could potentially provoke violence against the group, based upon the eight traits of hate speech definitions identified by @sellars2016defining) among researchers in a variety of fields and disciplines. 
+
+In linguistics, for example, semanticists and sociolinguists alike have taken up the semantic and pragmatic puzzles presented by dog whistles and slurs [@henderson2018dogwhistles; @cepollaro2015defence; @burnett2020persona], while others have begun to elucidate the morphosyntactic properties of slurs and derogatory constructions [@knoblock20221]. 
+
+On the computational side, researchers have begun to incorporate computational methods into large-scale investigations of hateful metaphors and language used to describe minoritized groups [@card2022computational; @barna2019antisemitism] or to detect hate speech automatically [@fortuna2018survey; @davidson2017automated]. It has also been pointed out that contemporary large language models may learn and reproduce hate speech, raising ethical concerns over the use of text-generation models that could exhibit learned biases [@bender2021dangers].
+
+Finally, psychologists and metal health researchers have long argued that hate speech is physically and mentally detrimental to the groups it addresses. 
+
+This paper aims to use corpus-assisted Critical Discourse Analysis in order to bring awareness to the ways in which transgender\footnote{I use the term `transgender' here as an umbrella term for a wide range of transgender, non-binary, and other gender expansive identities. This term may also be interpreted as including intersex people, but I avoid doing so categorically due to the complicated relationship many intersex individuals have with gender identity and transgender issues.} people are dehumanized and delegitimized in the American far-right. To do this, I examine the lexicaliztion of transgender identities on the far-right news site Breitbart, which plays a central role in the legitimization of language in the American right-wing due to its proliferation on social media sites such as Facebook [@Economist]. As such, the site serves as a fertile ground for the examination of socially charged language.
+
+The structure of this paper is as follows: I begin with a brief but indicative overview of the current status of trans and non-binary people and their rights in the United States in order to contextualize the work and highlight that the United States is at an inflection point with regards to these rights. I then provide a short positionality statement before turning to descriptions of the corpora used and how characteristic bigrams were identified.
+
+
+
+
+# Methods
+
+## The Corpora
+
+The data in this project comes from two purpose-built corpora, built to represent the linguistic practices of both the alt-right and queer communities as they regard trans and non-binary identities. The decision to use a queer-focused corpus as a comparison point was made in order to compare the language of the alt-right to the language that queer people use to describe themselves. The alt-right is represented by the Breitbart Transgender Corpus, scraped from the online publication Breitbart. The queer community is represented by the PinkNews Transgender Corpus, taken from the UK-based PinkNews.co.uk, a queer publication. The corpora are discussed in turn in the sections below, with a summary provided in Table \@ref(tab:CorpusStatsTable).
+
+```{r Corpus Stats Read-in, include=FALSE}
+table <- data.frame(
+  " " = c("Founded", "Articles Pulled", "Words in Corpus"),
+  "Breitbart" = c(2007, 2936, 8831627),
+  "PinkNews" = c(2005, 1984, 5829504)
+)
+```
+
+```{r CorpusStatsTable, echo=FALSE}
+kable(table, col.names = c(" ","Breitbart","PinkNews"), caption = "Corpus Overview Statistics")
+```
+
+### The Breitbart Transgender Corpus 
+
+Breitbart News, founded in 2007 by Andrew Breitbart and Larry Solov, is a media outlet known for its Far-Right leanings and inflammatory rhetoric. The site has become one of the bastions of the American Far Right, being shared disproportionately frequently on social media networking sites such as Facebook [@Economist], and purporting to be among the most engaged with Instagram and Facebook pages [@BreitbartMeta]. Its large presence and utilization by the American Far Right also makes it a space in which the language of the American Far Right becomes reified and ratified.
+
+### The PinkNews Transgender Corpus
+
+## Bigram Identification
+
+As a starting point for the analysis, we used the "log odds ratio informative Dirichlet prior"  established in [@monroe2008fightin] to identify the 10 bigrams most closely associated with each of the two corpora. This calculation approximates the difference in frequency of word *w* in corpora *i*,*j* via the log–odds–ratio for *w*, $\delta_w^{(i–j)}$. This is calculated as:
+
+$\delta_w^{(i-j)}$ = $\log$ $\frac{{y_w^i} + \alpha_w}{n^i + \alpha_0 - (y_w^i+\alpha_w)}$ - $\log$
+$\frac{{y_w^j} + \alpha_w}{n^j + \alpha_0 - (y_w^j+\alpha_w)}$
+
+Where $n^{i/j}$ indicate the sizes of the two corpora.
+
+$\sigma^2(\delta_w^{(i-j)}) \approx \frac{1}{y_w^i+\alpha_w} + \frac{1}{y_w^j+\alpha_w}$
+
+$\frac{\delta_w^{(i-j)}}{\sqrt{\sigma^2(\delta_w^{(i-j})}}$
+
+# Analysis
+
+## Large-Scale Narratives
+
+### Fighting Words Algorithm
+
+```{r include=FALSE}
+VerbVals <- read.csv("VerbVals.csv") %>% 
+  unique()
+
+breitbartIdeoVPs <- read_tsv("TransIdeoNouns.tsv")
+
+verbCounts <- read_tsv("TransIdeoNouns.tsv") %>% 
+  group_by(Verb) %>% 
+  summarize(count = n())
+
+breitData <- left_join(VerbVals,breitbartIdeoVPs)
+
+breitData <- left_join(breitData,verbCounts)
+
+breitbartFighting <- read.csv("breitbartFighting.csv") %>% 
+  mutate(source = "Breitbart")
+
+PNFighting <- read.csv("PNFighting.csv") %>% 
+  mutate(source="PinkNews") 
+
+bothFighting <- rbind(breitbartFighting,PNFighting)
+```
+
+```{r FightingWordsPlot, echo=FALSE, fig.cap="The results of the Fighting Words Algorithm. A more negative score indicates that a term is more characteristic of PinkNews, while a more positive one indicates that a term is more characteristic of Breitbart."}
+bothFighting %>% 
+  ggplot(aes(x=reorder(Bigram,Score),y=Score,fill=source)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  scale_fill_manual(values = sourceColors) + 
+  ylim(-22,22) + 
+  labs(x="Bigram",y="Score",fill="Source",title="Fighting Words Algorithm Results") +
+  theme(axis.text.x = element_text(face="bold",size=14)) + 
+  theme(axis.text.y = element_text(face="bold",size=10))
+```
+
+```{r}
+ggsave("qp2FightingWords.png",width=12, height = 6)
+```
+
+
+### N-Gram Analysis
+
+#### Biological 
+
+```{r BiologyPlot, echo=FALSE, fig.cap="Occurrences of 'biological + noun' bigrams in the corpora. Circles represent observed values, while diamonds represent predicted values."}
+BioNGrams %>% 
+  ggplot(aes(x=reorder(n.gram,Breitbart), y=Breitbart,color="Breitbart")) + 
+  geom_point(size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart), y=PinkNews, color="PinkNews"),size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart),y=BB, color="Breitbart"),shape="diamond",size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart),y=PNmean, color="PinkNews"),shape="diamond",size=3) +
+  geom_errorbar(aes(ymin = YMin, ymax=YMax),
+                width=0.25, position=dodge, color="black") + 
+  geom_errorbar(aes(ymin = PNYMin, ymax=PNYMax),
+                width=0.25, position=dodge,color="black") + 
+  coord_flip() + 
+  labs(x="Bigram",y="Occurrences in Corpus", color = "Source", title="Biological + [noun] collocations") + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=colors) +
+  theme(text = element_text(size=18))
+```
+
+```{r}
+ggsave("qp2Biological.png",width=12, height = 6)
+```
+
+#### Transgender
+
+```{r TransgenderPlot, echo=FALSE, fig.cap="Occurrences of 'transgender + noun' bigrams in the corpora. Circles represent observed values, while diamonds represent predicted values."}
+TransgenderNGrams %>% 
+  # filter(n.gram =="biological sex") %>% 
+  ggplot(aes(x=reorder(n.gram,Breitbart), y=Breitbart,color="Breitbart")) + 
+  geom_point(size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart), y=PinkNews, color="PinkNews"),size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart),y=BB, color="Breitbart"),shape="diamond",size=3) +
+  geom_point(aes(x=reorder(n.gram,Breitbart),y=PNmean, color="PinkNews"),shape="diamond",size=3) +
+  geom_errorbar(aes(ymin = YMin, ymax=YMax),
+                width=0.25, position=dodge, color="black") + 
+  geom_errorbar(aes(ymin = PNYMin, ymax=PNYMax),
+                width=0.25, position=dodge,color="black") + 
+  coord_flip() + 
+  labs(x="Bigram",y="Occurrences in Corpus", color = "Source", title="Transgender + [noun] collocations") + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=colors) +
+  theme(text = element_text(size=18))
+```
+
+```{r}
+ggsave("qp2Transgender.png",width=12, height = 6)
+```
+
+<!-- ## Linguistic Features -->
+
+<!-- ### Definite Article -->
+
+## Nominal Variation
+
+```{r}
+branBinary2 = c("#574D68","#F2E86D")
+```
+
+
+```{r}
+proportions <- nominalGrams %>% 
+  group_by(sex) %>% 
+  summarize(BB = sum(Breitbart),
+            PN = sum(PinkNews))
+
+test <- nominalGrams %>% 
+  mutate(BBprop = case_when(
+    sex == "amab" ~ Breitbart/1618,
+    sex == "afab" ~ Breitbart/598
+  )) %>% 
+  mutate(PNProp = case_when(
+    sex == "amab" ~ PinkNews/1950,
+    sex == "afab" ~ PinkNews/316
+  )) 
+```
+
+
+```{r}
+BBamabTable <- test %>% 
+  filter(sex == "amab") %>% 
+  select(macroGram,BBprop)
+
+BBafabTable <- test %>% 
+  filter(sex == "afab") %>% 
+  select(macroGram,BBprop) 
+
+PNamabTable <- test %>% 
+  filter(sex == "amab") %>% 
+  select(macroGram,PNProp)
+
+PNafabTable <- test %>% 
+  filter(sex == "afab") %>% 
+  select(macroGram,PNProp) 
+```
+
+```{r}
+BBafabTable <- BBafabTable[order(BBafabTable$BBprop, decreasing =TRUE),]
+
+BBamabTable <- BBamabTable[order(BBamabTable$BBprop, decreasing =TRUE),]
+
+PNafabTable <- PNafabTable[order(PNafabTable$PNProp, decreasing =TRUE),]
+
+PNamabTable <- PNamabTable[order(PNamabTable$PNProp, decreasing =TRUE),]
+```
+
+
+```{r}
+kable(BBafabTable, col.names=c("ngram","proportion"))
+```
+
+```{r}
+kable(BBamabTable, col.names=c("ngram","proportion"))
+```
+
+```{r}
+kable(PNamabTable, col.names=c("ngram","proportion"))
+```
+
+```{r}
+kable(PNafabTable, col.names=c("ngram","proportion"))
+```
+
+
+
+```{r NominalVariationPlot, echo=FALSE, fig.cap="Occurrences of bigrammatic NPs in the corpora used to describe transgender individuals. Circles represent observed values, while diamonds represent predicted values."}
+nominalGrams %>% 
+  ggplot(aes(x=macroGram, y=Breitbart,color="Breitbart")) + 
+  geom_point(size=3) +
+  geom_point(aes(x=macroGram, y=PinkNews, color="PinkNews"),size=3) +
+  geom_point(aes(x=macroGram,y=BB, color="Breitbart"),size=3,shape="diamond") +
+  geom_point(aes(x=macroGram,y=PNmean, color="PinkNews"),size=3,shape="diamond") +
+  geom_errorbar(aes(ymin = YMin, ymax=YMax),
+                width=0.25, position=dodge, color="black") + 
+  geom_errorbar(aes(ymin = PNYMin, ymax=PNYMax),
+                width=0.25, position=dodge,color="black") + 
+  coord_flip() + 
+  labs(x="Bigram",y="Occurrences in Corpus", color="Source", title="NPs used to identify transgender individuals") + 
+  scale_color_manual(values=branBinary2) +
+  theme(text = element_text(size=18))
+```
+
+```{r}
+ggsave("qp2Nominals.png",width=12, height = 6)
+```
+
+```{r}
+nominalGrams %>% 
+  mutate(BBDiff = BB-Breitbart) %>% 
+  select(macroGram,Breitbart,PinkNews,sex,BBDiff)
+```
+
+
+<!-- ### Verbal Argument Analysis -->
+
+<!-- ```{r echo=FALSE, message=FALSE, warning=FALSE} -->
+<!-- breitData %>%   -->
+<!--   filter(!is.na(Verb)) %>%  -->
+<!--   mutate(PeaceVioAbs = Peaceful - Violent) %>%  -->
+<!--   mutate(GoodBadAbs = Good - Bad) %>%  -->
+<!--   group_by(Verb,PeacefulViolentValue) %>% -->
+<!--   summarize(count = n()) %>% -->
+<!--   ggplot(aes(x=reorder(Verb,-count),y=count,fill=PeacefulViolentValue)) + -->
+<!--   geom_text(aes(label=count,hjust=-0.2)) + -->
+<!--   geom_bar(stat="identity") +  -->
+<!--   coord_flip() + -->
+<!--   theme(legend.position = "bottom") +  -->
+<!--   ylim(0,80) +  -->
+<!--   labs(x="Verb",y="Tokens",title="Verbs with Subject 'Transgender Ideology' in Breitbart",fill="Verb Valence") +  -->
+<!--   scale_fill_manual(values = bran_binary) -->
+<!-- ``` -->
+
+# Discussion
+
+# Conclusion
+
+# Bibliography
+
+# Testing Zone
+
+```{r}
+WoahTest <- read_tsv("breitbartWOAHmen.tsv")
+```
+
+```{r}
+WoahDF <- WoahTest %>% 
+  group_by(Noun, Adj) %>% 
+  summarize(count= n())
+```
+
+```{r}
+PNWoahTest <- read_tsv("PinkNewsWOAHmen.tsv")
+```
+
+```{r}
+PNWoahDF <- PNWoahTest %>% 
+  group_by(Noun, Adj) %>% 
+  summarize(count= n())
+```
+
+```{r}
+breitNouns <- read_tsv("breitbart.tsv")
+```
+
+
+```{r}
+breitBioMalesSample <- breitNouns %>% 
+  filter(Adj %in% c("trans","transgender","biological"),
+         Noun %in% c("man","men","male","males","woman","women","female","females")) %>% 
+  filter(Adj == "biological" & (Noun == "male" | Noun == "males")) %>% 
+  sample_n(50)
+```
+
+```{r}
+write.csv(breitBioMalesSample, "breitTransgenderWomanSample.csv",row.names = TRUE)
+```
+
+```{r}
+breitSampleCoded <- read_tsv("breitTransWomanSample.tsv")
+```
+
+```{r}
+breitSampleCoded %>% 
+  group_by(Quote) %>% 
+  summarize(count = n())
+```
+
+```{r}
+breitSampleCoded <- read_tsv("breitTransgenderWomanSample.tsv")
+```
+
+```{r}
+breitSampleCoded %>% 
+  group_by(Quote) %>% 
+  summarize(count=n())
+```
+
+```{r}
+breitSampleCoded <- read_tsv("breitBioMalesSample.tsv")
+```
+
+
+```{r}
+breitSampleCoded %>% 
+  group_by(Quote) %>% 
+  summarize(count=n())
+```
+
+```{r}
+breitNounsProcessed <- breitNouns %>% 
+  filter(Adj %in% c("trans","transgender","biological"),
+         Noun %in% c("man","men","male","males","woman","women","female","females")) %>% 
+  mutate(Noun = case_when(
+    Noun == "men" | Noun == "man" ~ "man/men",
+    Noun == "male" | Noun == "males" ~ "male(s)",
+    Noun == "woman" | Noun == "women" ~ "woman/women",
+    Noun == "female" | Noun == "females" ~ "female(s)",
+  )) %>% 
+  group_by(Noun,Adj) %>% 
+  summarize(count=n()) %>% 
+  mutate(QuoteProp = case_when(
+              Noun == "male(s)" & Adj == "biological" ~ count*.24,
+              Noun == "woman/women" & Adj == "transgender" ~ count*.44,
+              Noun == "woman/women" & Adj == "trans" ~ count*.84
+            ),
+         RealCount = count - QuoteProp,
+         source = "Breitbart") 
+```
+
+```{r}
+breitNounsProcessed %>% 
+  unite("NGram",Adj:Noun, remove=TRUE, sep = " ") %>% 
+  filter(QuoteProp != "NA") %>% 
+  ggplot(aes(y=NGram,x=count,xend=RealProp)) + 
+  geom_dumbbell(linewidth=3, color="#e3e2e1",
+                colour_x = "#B80C09", colour_xend = "#0A99FF",
+                dot_guide=FALSE, dot_guide_size=0.25)
+```
+
+
+```{r}
+breitNounsProcessed %>% 
+  unite("NGram",Adj:Noun, remove=TRUE, sep = " ") %>% 
+  filter(QuoteProp != "NA") %>% 
+  pivot_longer(count:RealProp,names_to = "type") %>% 
+  ggplot(aes(y=value, x=NGram, color=type)) + 
+  geom_point(size = 3) + 
+  geom_text_repel(aes(y=value,x=NGram,label=value),inherit.aes = FALSE,size=3) +
+  theme(legend.position = "top") + 
+  scale_color_manual(values = bran_ternary, labels = c("Observed Count", "Quoted Count", "True Count")) + 
+  coord_flip() + 
+  labs(color = "Token Type") + 
+  ylim(0,500)
+```
+
+```{r}
+ggsave("qp2TransWomQuote.png",width=8, height = 3)
+```
+
+
+## Pinke News
+
+```{r}
+PNouns <- read_tsv("pinknews.tsv")
+```
+
+```{r}
+PNounsProcessed <- PNouns %>% 
+  filter(Adj %in% c("trans","transgender","biological"),
+         Noun %in% c("man","men","male","males","woman","women","female","females")) %>% 
+  mutate(Noun = case_when(
+    Noun == "men" | Noun == "man" ~ "man/men",
+    Noun == "male" | Noun == "males" ~ "male(s)",
+    Noun == "woman" | Noun == "women" ~ "woman/women",
+    Noun == "female" | Noun == "females" ~ "female(s)",
+  )) %>% 
+  group_by(Noun,Adj) %>% 
+  summarize(count=n()) %>% 
+  mutate(source="PinkNews")
+```
+
+```{r}
+breitNounsProcessed %>% 
+  unite("NGram",Adj:Noun, remove=TRUE, sep = " ") %>% 
+  filter(QuoteProp != "NA") %>% 
+  pivot_longer(count:RealProp,names_to = "type") %>% 
+  ggplot(aes(x=reorder(NGram,value),fill=type,y=value)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Accent", labels = c("Observed Count", "Quoted Count", "True Count")) + 
+  theme_bw() + 
+  labs(x = "Referring Expression", y="Count", fill = "Count Type") + 
+  # theme(axis.text.x = element_text(angle=45,vjust=0.65)) + 
+  scale_x_discrete(labels=function(x){sub("\\s","\n", x)}) + 
+  theme(text = element_text(size=16))
+```
+
+```{r}
+ggsave("qp2ReferringQuotes.png",width=8,height=6)
+```
+
+
+
+

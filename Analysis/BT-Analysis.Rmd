@@ -1,0 +1,175 @@
+---
+title: "BT-Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preliminaries
+
+```{r}
+library(tidyverse)
+library(ggrepel)
+library(lubridate)
+library(ggpubr)
+library(ggalt)
+library(matrixStats)
+library(knitr)
+library(stringr)
+source("helpers.R")
+theme_set(theme_bw())
+dodge = position_dodge(0.9)
+bran_binary = c("#003049","#d62828")
+bran_ternary = c("#a5a69fff", "#9db320ff", "#218b9eff")
+branBinary2 = c("#00FFFF","#FF69B4")
+```
+
+# Nominal Variation
+
+## Breitbart
+
+```{r}
+breitNouns <- read_tsv("breitbart.tsv")
+```
+
+```{r}
+breitNounsProcessed <- breitNouns %>% 
+  filter(Adj %in% c("trans","transgender","biological"),
+         Noun %in% c("man","men","male","males","woman","women","female","females")) %>% 
+  mutate(Noun = case_when(
+    Noun == "men" | Noun == "man" ~ "man/men",
+    Noun == "male" | Noun == "males" ~ "male(s)",
+    Noun == "woman" | Noun == "women" ~ "woman/women",
+    Noun == "female" | Noun == "females" ~ "female(s)",
+  )) %>% 
+  group_by(Noun,Adj) %>% 
+  summarize(count=n()) %>% 
+  mutate(QuoteProp = case_when(
+              Noun == "male(s)" & Adj == "biological" ~ count*.24,
+              Noun == "woman/women" & Adj == "transgender" ~ count*.44,
+              Noun == "woman/women" & Adj == "trans" ~ count*.84
+            ),
+         RealCount = count - QuoteProp,
+         source = "Breitbart",
+         SAAB = case_when(
+              Noun == "male(s)" & Adj == "biological" ~ "Assigned Male at Birth",
+              Noun == "woman/women" & Adj == "transgender" ~ "Assigned Male at Birth",
+              Noun == "woman/women" & Adj == "trans" ~ "Assigned Male at Birth",
+              Noun == "female(s)" & Adj == "biological" ~ "Assigned Female at Birth",
+              Noun == "man/men" & Adj == "transgender" ~ "Assigned Female at Birth",
+              Noun == "man/men" & Adj == "trans" ~ "Assigned Female at Birth"
+         ),
+         Bigram = paste(Adj, Noun, sep= " "),
+         WPM = count/8831627 * 1000000,
+         realWPM = RealCount/8831627 * 1000000) %>% 
+  filter(
+    (Noun == "male(s)" & Adj == "biological") |
+    (Noun == "woman/women" & Adj == "transgender") |
+    (Noun == "woman/women" & Adj == "trans") |
+    (Noun == "female(s)" & Adj == "biological") |
+    (Noun == "man/men" & Adj == "transgender") |
+    (Noun == "man/men" & Adj == "trans")
+  )
+```
+
+```{r}
+breitNounsProcessed %>% 
+  filter(SAAB == "M") %>% 
+  ggplot(aes(x=Bigram, y=count)) +
+  geom_point() +
+  coord_flip()
+```
+
+## Pink News
+
+```{r}
+PNouns <- read_tsv("pinknews.tsv")
+```
+
+```{r}
+PNounsProcessed <- PNouns %>% 
+  filter(Adj %in% c("trans","transgender","biological"),
+         Noun %in% c("man","men","male","males","woman","women","female","females")) %>% 
+  mutate(Noun = case_when(
+    Noun == "men" | Noun == "man" ~ "man/men",
+    Noun == "male" | Noun == "males" ~ "male(s)",
+    Noun == "woman" | Noun == "women" ~ "woman/women",
+    Noun == "female" | Noun == "females" ~ "female(s)",
+  )) %>% 
+  group_by(Noun,Adj) %>% 
+  summarize(count=n()) %>% 
+  mutate(source = "PinkNews",
+         SAAB = case_when(
+              Noun == "male(s)" & Adj == "biological" ~ "Assigned Male at Birth",
+              Noun == "woman/women" & Adj == "transgender" ~ "Assigned Male at Birth",
+              Noun == "woman/women" & Adj == "trans" ~ "Assigned Male at Birth",
+              Noun == "female(s)" & Adj == "biological" ~ "Assigned Female at Birth",
+              Noun == "man/men" & Adj == "transgender" ~ "Assigned Female at Birth",
+              Noun == "man/men" & Adj == "trans" ~ "Assigned Female at Birth"
+         ),
+         Bigram = paste(Adj, Noun, sep= " "),
+         WPM = count/5829504 * 1000000) %>%  
+  filter(
+    (Noun == "male(s)" & Adj == "biological") |
+    (Noun == "woman/women" & Adj == "transgender") |
+    (Noun == "woman/women" & Adj == "trans") |
+    (Noun == "female(s)" & Adj == "biological") |
+    (Noun == "man/men" & Adj == "transgender") |
+    (Noun == "man/men" & Adj == "trans")
+  )
+```
+
+
+```{r}
+AllNouns <- rbind(PNounsProcessed,breitNounsProcessed) %>% 
+  select(-c("QuoteProp","RealProp")) %>% 
+  pivot_wider(names_from = source, values_from = c(count,WPM)) %>% 
+  mutate(SourceDiff = abs(WPM_PinkNews - WPM_Breitbart))
+
+
+AllNouns <- AllNouns %>% 
+  pivot_longer(
+    cols = -c(Noun, Adj, SAAB, Bigram, SourceDiff),
+    names_to = "Variable",
+    values_to = "Value"
+  ) %>%
+  separate(Variable, into = c("Measure", "Source"), sep = "_") %>%
+  pivot_wider(
+    names_from = Measure,
+    values_from = Value
+  )
+```
+
+
+
+```{r}
+AllNouns %>%
+  filter(SAAB =="Assigned Male at Birth") %>% 
+  mutate(type = case_when(
+    Adj == "biological" ~ "Biology",
+    TRUE ~ "Gender"
+  )) %>% 
+  ggplot(aes(x = reorder(Bigram, -SourceDiff), y = WPM, fill = Source)) +
+  geom_bar(stat = "identity",position="dodge") +
+  scale_fill_manual(values = branBinary2) +
+  labs(x = "Bigram", y = "Occurrences Per Million Words", fill = "Source") +
+  theme(
+    legend.position = "bottom",
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(title = "Source")) + 
+  ylim(0,155) + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 11)) + 
+  # facet_wrap(~ SAAB, drop = TRUE, scales = "free") + 
+  theme(text=element_text(size = 18),
+        axis.text = element_text(size=16))
+```
+
+```{r}
+ggsave("qp2NominalsFeminine.png", height=6, width=6)
+```
+
+
